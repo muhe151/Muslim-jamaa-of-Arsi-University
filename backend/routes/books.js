@@ -5,7 +5,7 @@ const Book = require('../models/Book');
 const { auth, requireRole } = require('../middleware/auth');
 const multer = require('multer');
 
-// Configure multer to accept files
+// Configure standard local storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = path.join(__dirname, '..', 'uploads', 'books');
@@ -18,14 +18,16 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
 router.get('/', auth, async (req, res) => {
-  const books = await Book.find().sort({ uploadedAt: -1 });
-  res.json(books);
+  try {
+    const books = await Book.find().sort({ uploadedAt: -1 });
+    res.json(books);
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// Accept BOTH 'file' (PDF) and 'cover' (Image)
+// Upload Route
 router.post('/', auth, requireRole('admin'), upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), async (req, res) => {
   try {
     if (!req.files || !req.files['file']) {
@@ -39,50 +41,59 @@ router.post('/', auth, requireRole('admin'), upload.fields([{ name: 'file', maxC
       title: req.body.title,
       author: req.body.author,
       category: req.body.category,
-      filePath: pdfFile.filename,
+      filePath: pdfFile.filename, 
       fileSize: pdfFile.size,
-      coverImage: coverFile ? coverFile.filename : null, // Saves image name
+      coverImage: coverFile ? coverFile.filename : null, 
       uploadedBy: req.user.id
     });
     res.json(book);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 });
 
+// Download Route
 router.get('/:id/download', auth, async (req, res) => {
-  const book = await Book.findById(req.params.id);
-  if (!book) return res.status(404).json({ message: 'Book not found' });
-  const fullPath = path.join(__dirname, '..', 'uploads', 'books', book.filePath);
-  if (!fs.existsSync(fullPath)) return res.status(404).json({ message: 'File missing' });
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book) return res.status(404).json({ message: 'Book not found' });
+    const fullPath = path.join(__dirname, '..', 'uploads', 'books', book.filePath);
+    if (!fs.existsSync(fullPath)) return res.status(404).json({ message: 'File missing' });
 
-  book.downloadCount += 1;
-  await book.save();
+    book.downloadCount += 1;
+    await book.save();
 
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="${book.title.replace(/[^a-z0-9]/gi, '_')}.pdf"`);
-  fs.createReadStream(fullPath).pipe(res);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${book.title.replace(/[^a-z0-9]/gi, '_')}.pdf"`);
+    fs.createReadStream(fullPath).pipe(res);
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// Public route to display the image
+// Cover Image Route
 router.get('/:id/cover', async (req, res) => {
-  const book = await Book.findById(req.params.id);
-  if (!book || !book.coverImage) return res.status(404).send('No cover');
-  const fullPath = path.join(__dirname, '..', 'uploads', 'books', book.coverImage);
-  if (!fs.existsSync(fullPath)) return res.status(404).send('File missing');
-  res.sendFile(fullPath);
+  try {
+    const book = await Book.findById(req.params.id);
+    if (!book || !book.coverImage) return res.status(404).send('No cover');
+    const fullPath = path.join(__dirname, '..', 'uploads', 'books', book.coverImage);
+    if (!fs.existsSync(fullPath)) return res.status(404).send('File missing');
+    res.sendFile(fullPath);
+  } catch (err) { res.status(500).send('Server error'); }
 });
 
+// Delete Route
 router.delete('/:id', auth, requireRole('admin'), async (req, res) => {
-  const book = await Book.findById(req.params.id);
-  if (book) {
-    const pdfPath = path.join(__dirname, '..', 'uploads', 'books', book.filePath);
-    const coverPath = book.coverImage ? path.join(__dirname, '..', 'uploads', 'books', book.coverImage) : null;
-    if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
-    if (coverPath && fs.existsSync(coverPath)) fs.unlinkSync(coverPath);
-    await book.deleteOne();
-  }
-  res.json({ message: 'Deleted' });
+  try {
+    const book = await Book.findById(req.params.id);
+    if (book) {
+      const pdfPath = path.join(__dirname, '..', 'uploads', 'books', book.filePath);
+      const coverPath = book.coverImage ? path.join(__dirname, '..', 'uploads', 'books', book.coverImage) : null;
+      if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
+      if (coverPath && fs.existsSync(coverPath)) fs.unlinkSync(coverPath);
+      await book.deleteOne();
+    }
+    res.json({ message: 'Deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 module.exports = router;

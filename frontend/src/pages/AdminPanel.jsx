@@ -107,17 +107,38 @@ function AdminBooks() {
   const load = () => api.get('/books').then(r => setBooks(r.data));
   useEffect(() => { load(); }, []);
 
-  const upload = async (e) => {
+    const upload = async (e) => {
     e.preventDefault();
+    if (!form.file) {
+      alert("Please select a PDF file.");
+      return;
+    }
+
     const fd = new FormData();
-    fd.append('title', form.title); fd.append('author', form.author); fd.append('category', form.category);
+    fd.append('title', form.title); 
+    fd.append('author', form.author); 
+    fd.append('category', form.category);
     fd.append('file', form.file);
     if (form.cover) fd.append('cover', form.cover);
-    await api.post('/books', fd);
-    setForm({ title: '', author: '', category: '', file: null, cover: null });
-    load();
-  };
 
+    try {
+      const btn = e.target.querySelector('button[type="submit"]');
+      if (btn) btn.innerText = "Uploading...";
+      
+      await api.post('/books', fd);
+      
+      setForm({ title: '', author: '', category: '', file: null, cover: null });
+      load();
+      alert("Book uploaded successfully to Cloudinary!");
+    } catch (err) {
+      console.error(err);
+      // THIS WILL SHOW YOU THE EXACT ERROR ON SCREEN
+      alert("Upload Failed: " + (err.response?.data?.message || err.message));
+    } finally {
+      const btn = e.target.querySelector('button[type="submit"]');
+      if (btn) btn.innerText = "Upload";
+    }
+  };
   const del = async (id) => { if (!confirm('Delete?')) return; await api.delete(`/books/${id}`); load(); };
 
   return (
