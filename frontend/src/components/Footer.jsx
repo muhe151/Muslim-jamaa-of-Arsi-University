@@ -40,16 +40,17 @@ export default function Footer() {
           <div className="col-md-3 mb-4">
             <h6 className="fw-bold mb-3 text-white">Follow Us</h6>
             <div className="d-flex gap-2">
-              <a href="#" className="btn btn-outline-success rounded-circle social-btn"><i className="bi bi-facebook"></i></a>
-              <a href="#" className="btn btn-outline-success rounded-circle social-btn"><i className="bi bi-telegram"></i></a>
-              <a href="#" className="btn btn-outline-success rounded-circle social-btn"><i className="bi bi-instagram"></i></a>
-              <a href="#" className="btn btn-outline-success rounded-circle social-btn"><i className="bi bi-youtube"></i></a>
+              <a href="https://www.facebook.com/mohammed.n.jemal.3" className="btn btn-outline-success rounded-circle social-btn"><i className="bi bi-facebook"></i></a>
+              <a href="https://t.me/muhe_family" className="btn btn-outline-success rounded-circle social-btn"><i className="bi bi-telegram"></i></a>
+              <a href="https://twitter.com/@muhe2312" className="btn btn-outline-success rounded-circle social-btn"><i className="bi bi-twitter"></i></a>
+              <a href="https://www.youtube.com/@technologyfaanafuulduratti" className="btn btn-outline-success rounded-circle social-btn"><i className="bi bi-youtube"></i></a>
+              <a href="https://www.tiktok.com/@muhemedia?_r=1&_t=ZS-9AMKE0UHvHx" className="btn btn-outline-success rounded-circle social-btn"><i className="bi bi-tiktok"></i></a>
             </div>
           </div>
 
         </div>
         
-        <hr className="border-secondary mt-4" />
+        <hr className="border-secondary mt-4" />  
         <div className="text-center text-light opacity-50 small">
           &copy; {new Date().getFullYear()} Muslim Jama'aa - Arsi University. All rights reserved.
         </div>

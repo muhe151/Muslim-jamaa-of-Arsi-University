@@ -118,43 +118,35 @@ router.put('/complaints/:id', auth, requireRole('admin'), async (req, res) => {
   res.json(complaint);
 });
 
-// GET Participation Report
 router.get('/participation-report', auth, requireRole('admin'), async (req, res) => {
   try {
-    const currentYear = new Date().getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear, 11, 31);
-
-    // 1. Total Students & Ustaz
     const totalStudents = await User.countDocuments({ role: 'student' });
     const totalUstaz = await User.countDocuments({ role: 'ustaz' });
+    const profiles = await StudentProfile.find();
 
-    // 2. Registered This Year
-    const studentsThisYear = await User.countDocuments({ 
-      role: 'student', 
-      createdAt: { $gte: startOfYear, $lte: endOfYear } 
+    const kitabStats = {};
+    const campusStats = { 'Ardu Campus': 0, 'Dinsho Campus': 0, 'Bokoji Campus': 0, 'Health Campus': 0 };
+    const departmentStats = {};
+    const yearStats = {};
+
+    profiles.forEach(p => {
+      // Kitab
+      const kitab = p.kitabPreferences || 'None';
+      kitabStats[kitab] = (kitabStats[kitab] || 0) + 1;
+
+      // Campus
+      if (p.campus && campusStats[p.campus] !== undefined) campusStats[p.campus]++;
+
+      // Department
+      const dept = p.department || 'Not Specified';
+      departmentStats[dept] = (departmentStats[dept] || 0) + 1;
+
+      // Year
+      const yr = p.year || 'Not Specified';
+      yearStats[yr] = (yearStats[yr] || 0) + 1;
     });
 
-    // 3. Active Participation (Students assigned to an Ustaz/Kitab)
-    const activeAssignments = await Assignment.distinct('student');
-    const activeStudents = activeAssignments.length;
-    const activeUstaz = await Assignment.distinct('ustaz');
-
-    // 4. Breakdown by Quran Level
-    const studentProfiles = await StudentProfile.find().populate('user');
-    const quranLevels = { beginner: 0, intermediate: 0, hafiz: 0 };
-    studentProfiles.forEach(p => {
-      if (quranLevels[p.quranLevel] !== undefined) quranLevels[p.quranLevel]++;
-    });
-
-    res.json({ 
-      totalStudents, 
-      studentsThisYear,
-      activeStudents, 
-      totalUstaz, 
-      activeUstaz: activeUstaz.length,
-      quranLevels
-    });
+    res.json({ totalStudents, totalUstaz, kitabStats, campusStats, departmentStats, yearStats });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -289,5 +281,61 @@ router.get('/grouped-assignments/pdf', auth, requireRole('admin'), async (req, r
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+}) //
+
+router.get('/reports/pdf', auth, requireRole('admin'), async (req, res) => {
+  try {
+    const profiles = await StudentProfile.find();
+    const totalStudents = await User.countDocuments({ role: 'student' });
+    const totalUstaz = await User.countDocuments({ role: 'ustaz' });
+
+    const kitabStats = {}; const campusStats = { 'Ardu Campus': 0, 'Dinsho Campus': 0, 'Bokoji Campus': 0, 'Health Campus': 0 };
+    const departmentStats = {}; const yearStats = {};
+
+    profiles.forEach(p => {
+      const k = p.kitabPreferences || 'None'; kitabStats[k] = (kitabStats[k] || 0) + 1;
+      if (campusStats[p.campus] !== undefined) campusStats[p.campus]++;
+      const d = p.department || 'Not Specified'; departmentStats[d] = (departmentStats[d] || 0) + 1;
+      const y = p.year || 'Not Specified'; yearStats[y] = (yearStats[y] || 0) + 1;
+    });
+
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=Jamaa_Report.pdf');
+    doc.pipe(res);
+
+    doc.fontSize(20).fillColor('#198754').text("Muslim Jama'aa - Arsi University", { align: 'center' });
+    doc.fontSize(14).fillColor('black').text("Official Statistics Report", { align: 'center' });
+    doc.moveDown(1.5);
+
+    // Summary Totals
+    doc.fontSize(12).font('Helvetica-Bold').text(`Total Students: ${totalStudents}   |   Total Ustaz: ${totalUstaz}`);
+    doc.moveDown(1.5);
+
+    // Helper function to draw tables
+    const drawTable = (title, data) => {
+      doc.fontSize(12).font('Helvetica-Bold').fillColor('#198754').text(title);
+      doc.moveDown(0.5);
+      let y = doc.y;
+      doc.rect(40, y, 515, 20).fillAndStroke('#f8f9fa', '#ccc');
+      doc.fillColor('black').fontSize(10).text('Category', 50, y + 5).text('Total', 400, y + 5);
+      y += 20;
+      
+      doc.font('Helvetica');
+      Object.entries(data).forEach(([key, val]) => {
+        doc.rect(40, y, 515, 20).stroke('#ccc');
+        doc.text(key, 50, y + 5).text(val.toString(), 400, y + 5);
+        y += 20;
+      });
+      doc.y = y + 20;
+    };
+
+    drawTable('1. Students by Kitab', kitabStats);
+    drawTable('2. Students by Campus', campusStats);
+    drawTable('3. Students by Department', departmentStats);
+    drawTable('4. Students by Year', yearStats);
+
+    doc.end();
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 module.exports = router;

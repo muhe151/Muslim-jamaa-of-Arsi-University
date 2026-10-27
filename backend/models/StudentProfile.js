@@ -6,17 +6,12 @@ const studentProfileSchema = new mongoose.Schema({
   region: String,
   zone: String,
   city: String,
-  islamicEducationStatus: {
-    type: String,
-    enum: ['none', 'madrasa', 'hifz', 'alim'],
-    default: 'none'
-  },
-  quranLevel: {
-    type: String,
-    enum: ['beginner', 'intermediate', 'hafiz'],
-    default: 'beginner'
-  },
-  kitabPreferences: [String],
+  campus: { type: String, enum: ['Ardu Campus', 'Dinsho Campus', 'Bokoji Campus', 'Health Campus'], default: 'Ardu Campus' },
+  department: { type: String, default: 'Not Specified' }, // <--- NEW
+  year: { type: String, default: '1st Year' }, // <--- NEW
+  islamicEducationStatus: { type: String, enum: ['none','Basic','Good','Alim'], default: 'none' },
+  quranLevel: { type: String, enum: ['beginner','intermediate','hafiz'], default: 'beginner' },
+  kitabPreferences: { type: String, default: 'None' },
   enrollmentDate: { type: Date, default: Date.now }
 });
 

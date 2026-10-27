@@ -156,55 +156,138 @@ function AdminBooks() {
     </div>
   );
 }
-
 // --- REPORTS TAB ---
 function AdminReports() {
-  const [groups, setGroups] = useState([]);
-  const [stats, setStats] = useState({ totalStudents: 0, activeStudents: 0, totalUstaz: 0, activeUstaz: 0 });
+  const [stats, setStats] = useState({ 
+    totalStudents: 0, totalUstaz: 0, kitabStats: {}, campusStats: {}, departmentStats: {}, yearStats: {}
+  });
 
   useEffect(() => {
-    api.get('/admin/grouped-assignments').then(r => setGroups(r.data));
-    api.get('/admin/participation-report').then(r => setStats(r.data));
+    api.get('/admin/participation-report').then(r => setStats(r.data)).catch(console.error);
   }, []);
 
   const downloadPdf = async () => {
-    const res = await api.get('/admin/grouped-assignments/pdf', { responseType: 'blob' });
+    const res = await api.get('/admin/reports/pdf', { responseType: 'blob' });
     const url = window.URL.createObjectURL(new Blob([res.data]));
-    const a = document.createElement('a'); a.href = url; a.download = 'report.pdf'; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = 'Jamaa_Report.pdf'; a.click();
     window.URL.revokeObjectURL(url);
   };
 
+  const CAMPUSES = ['Ardu Campus', 'Dinsho Campus', 'Bokoji Campus', 'Health Campus'];
+
   return (
     <div>
-      <div className="row mb-4">
-        <div className="col-md-6"><div className="card bg-success text-white border-0 shadow-sm rounded-4 mb-3"><div className="card-body"><h6 className="fw-bold text-white-50">Student Participation</h6><h3 className="mb-0">{stats.activeStudents} / {stats.totalStudents} Active</h3><small>Students assigned to an Ustaz</small></div></div></div>
-        <div className="col-md-6"><div className="card bg-dark text-white border-0 shadow-sm rounded-4 mb-3"><div className="card-body"><h6 className="fw-bold text-white-50">Ustaz Participation</h6><h3 className="mb-0">{stats.activeUstaz} / {stats.totalUstaz} Active</h3><small>Ustaz teaching assigned students</small></div></div></div>
+      {/* Top Header and Download Button */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h5 className="fw-bold mb-0 text-success">📊 Live System Statistics</h5>
+        <button className="btn btn-success fw-bold shadow-sm" onClick={downloadPdf}>
+          📥 Download PDF Report
+        </button>
       </div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="fw-bold mb-0">Grouped Students Report</h5>
-        <button className="btn btn-success fw-bold" onClick={downloadPdf}>📥 Download PDF</button>
+
+      {/* Compact Summary Boxes */}
+      <div className="row g-3 mb-4">
+        <div className="col-md-6 col-lg-4">
+          <div className="card bg-success text-white border-0 shadow-sm rounded-4">
+            <div className="card-body p-3 text-center">
+              <h2 className="display-5 fw-bold mb-0">{stats.totalStudents}</h2>
+              <small className="fw-bold opacity-75">TOTAL STUDENTS</small>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-6 col-lg-4">
+          <div className="card bg-dark text-white border-0 shadow-sm rounded-4">
+            <div className="card-body p-3 text-center">
+              <h2 className="display-5 fw-bold mb-0">{stats.totalUstaz}</h2>
+              <small className="fw-bold opacity-75">TOTAL USTAZ</small>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="table-responsive">
-        <table className="table table-bordered table-hover align-middle">
-          <thead className="table-success"><tr><th>Ustaz Name</th><th>Kitab Name</th><th>Student Name</th><th>Student Email</th></tr></thead>
-          <tbody>
-            {groups.map((group, gIndex) => (
-              <React.Fragment key={gIndex}>
-                {group.students.map((student, sIndex) => (
-                  <tr key={sIndex}>
-                    {sIndex === 0 && (<><td rowSpan={group.students.length} className="fw-bold text-success border-end">{group.ustazName}</td><td rowSpan={group.students.length} className="fw-bold border-end">{group.kitabName}</td></>)}
-                    <td>{student.name}</td><td className="text-muted small">{student.email}</td>
-                  </tr>
-                ))}
-              </React.Fragment>
-            ))}
-          </tbody>
-        </table>
+
+      {/* Excel-style Tables */}
+      <div className="row g-4">
+        
+        {/* Kitab Table */}
+        <div className="col-md-6">
+          <div className="card shadow-sm border-0 rounded-4 h-100">
+            <div className="card-header bg-white border-0 pt-3 pb-0"><h6 className="fw-bold text-success mb-0">📚 Students by Kitab</h6></div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <table className="table table-bordered table-striped align-middle mb-0">
+                  <thead className="table-light"><tr><th>Kitab Name</th><th className="text-end">Total Students</th></tr></thead>
+                  <tbody>
+                    {Object.entries(stats.kitabStats).map(([kitab, count]) => (
+                      <tr key={kitab}><td className="fw-bold">{kitab}</td><td className="text-end"><span className="badge bg-primary fs-6">{count}</span></td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Campus Table */}
+        <div className="col-md-6">
+          <div className="card shadow-sm border-0 rounded-4 h-100">
+            <div className="card-header bg-white border-0 pt-3 pb-0"><h6 className="fw-bold text-success mb-0">📍 Students by Campus</h6></div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <table className="table table-bordered table-striped align-middle mb-0">
+                  <thead className="table-light"><tr><th>Campus Name</th><th className="text-end">Total Students</th></tr></thead>
+                  <tbody>
+                    {CAMPUSES.map(campus => (
+                      <tr key={campus}><td className="fw-bold">{campus}</td><td className="text-end"><span className="badge bg-info text-dark fs-6">{stats.campusStats[campus] || 0}</span></td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Department Table */}
+        <div className="col-md-6">
+          <div className="card shadow-sm border-0 rounded-4 h-100">
+            <div className="card-header bg-white border-0 pt-3 pb-0"><h6 className="fw-bold text-success mb-0">🎓 Students by Department</h6></div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <table className="table table-bordered table-striped align-middle mb-0">
+                  <thead className="table-light"><tr><th>Department</th><th className="text-end">Total Students</th></tr></thead>
+                  <tbody>
+                    {Object.entries(stats.departmentStats).map(([dept, count]) => (
+                      <tr key={dept}><td className="fw-bold">{dept}</td><td className="text-end"><span className="badge bg-warning text-dark fs-6">{count}</span></td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Year Table */}
+        <div className="col-md-6">
+          <div className="card shadow-sm border-0 rounded-4 h-100">
+            <div className="card-header bg-white border-0 pt-3 pb-0"><h6 className="fw-bold text-success mb-0">📅 Students by Year</h6></div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <table className="table table-bordered table-striped align-middle mb-0">
+                  <thead className="table-light"><tr><th>Year</th><th className="text-end">Total Students</th></tr></thead>
+                  <tbody>
+                    {Object.entries(stats.yearStats).map(([year, count]) => (
+                      <tr key={year}><td className="fw-bold">{year}</td><td className="text-end"><span className="badge bg-secondary fs-6">{count}</span></td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
 }
-
 // --- SCHEDULE TAB ---
 function AdminSchedule() {
   const [schedules, setSchedules] = useState([]);
