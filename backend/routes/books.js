@@ -5,7 +5,6 @@ const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
 
-// 1. Configure Multer to use Cloudinary
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
@@ -15,7 +14,7 @@ const storage = new CloudinaryStorage({
 
     if (file.fieldname === 'file') {
       folder = 'muslim_jamaa_books';
-      resource_type = 'raw'; // Required for PDF
+      resource_type = 'raw'; 
       format = 'pdf';
     }
 
@@ -30,7 +29,14 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
-// 2. Upload Route
+// THIS IS THE ROUTE THAT IS MISSING (THE 404 ERROR)
+router.get('/', auth, async (req, res) => {
+  try {
+    const books = await Book.find().sort({ uploadedAt: -1 });
+    res.json(books);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
 router.post('/', auth, requireRole('admin'), upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), async (req, res) => {
   try {
     if (!req.files || !req.files['file']) {
@@ -44,9 +50,9 @@ router.post('/', auth, requireRole('admin'), upload.fields([{ name: 'file', maxC
       title: req.body.title,
       author: req.body.author,
       category: req.body.category,
-      filePath: pdfFile.path, // <--- MUST BE .path (Cloudinary URL)
+      filePath: pdfFile.path, 
       fileSize: pdfFile.size,
-      coverImage: coverFile ? coverFile.path : null, // <--- MUST BE .path (Cloudinary URL)
+      coverImage: coverFile ? coverFile.path : null, 
       uploadedBy: req.user.id
     });
     res.json(book);
@@ -56,56 +62,31 @@ router.post('/', auth, requireRole('admin'), upload.fields([{ name: 'file', maxC
   }
 });
 
-// ... (Keep the rest of the routes exactly as they are: GET, download, cover, delete)
-// Download Route
 router.get('/:id/download', auth, async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
     if (!book) return res.status(404).json({ message: 'Book not found' });
-    const fullPath = path.join(__dirname, '..', 'uploads', 'books', book.filePath);
-    if (!fs.existsSync(fullPath)) return res.status(404).json({ message: 'File missing' });
 
     book.downloadCount += 1;
     await book.save();
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${book.title.replace(/[^a-z0-9]/gi, '_')}.pdf"`);
-    fs.createReadStream(fullPath).pipe(res);
+    const downloadUrl = book.filePath.replace('/upload/', '/upload/fl_attachment/');
+    res.redirect(downloadUrl);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-// Cover Image Route
-// GET COVER IMAGE
 router.get('/:id/cover', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
-    if (!book || !book.coverImage) {
-      return res.status(404).send('No cover');
-    }
-    
-    // Cloudinary URLs start with 'http'. Redirect to them directly.
-    if (book.coverImage.startsWith('http')) {
-      return res.redirect(book.coverImage);
-    } 
-    
-    // Fallback for old local images (just in case you have old books)
-    res.redirect(`https://muslim-jamaa-api.onrender.com/uploads/books/${book.coverImage}`);
-  } catch (err) { 
-    res.status(500).send('Server error'); 
-  }
+    if (!book || !book.coverImage) return res.status(404).send('No cover');
+    res.redirect(book.coverImage);
+  } catch (err) { res.status(500).send('Server error'); }
 });
 
-// Delete Route
 router.delete('/:id', auth, requireRole('admin'), async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
-    if (book) {
-      const pdfPath = path.join(__dirname, '..', 'uploads', 'books', book.filePath);
-      const coverPath = book.coverImage ? path.join(__dirname, '..', 'uploads', 'books', book.coverImage) : null;
-      if (fs.existsSync(pdfPath)) fs.unlinkSync(pdfPath);
-      if (coverPath && fs.existsSync(coverPath)) fs.unlinkSync(coverPath);
-      await book.deleteOne();
-    }
+    if (book) await book.deleteOne();
     res.json({ message: 'Deleted' });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
