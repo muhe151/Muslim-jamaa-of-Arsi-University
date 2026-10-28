@@ -1,33 +1,36 @@
 const router = require('express').Router();
-const path = require('path');
-const fs = require('fs');
 const Book = require('../models/Book');
 const { auth, requireRole } = require('../middleware/auth');
 const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../config/cloudinary');
 
-// Configure standard local storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '..', 'uploads', 'books');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
+// 1. Configure Multer to use Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    let folder = 'muslim_jamaa_covers';
+    let resource_type = 'image';
+    let format = 'jpg';
+
+    if (file.fieldname === 'file') {
+      folder = 'muslim_jamaa_books';
+      resource_type = 'raw'; // Required for PDF
+      format = 'pdf';
+    }
+
+    return {
+      folder: folder,
+      resource_type: resource_type,
+      format: format,
+      public_id: `${Date.now()}-${file.originalname.split('.')[0]}`
+    };
   },
-  filename: (req, file, cb) => {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${unique}${path.extname(file.originalname)}`);
-  }
 });
 
 const upload = multer({ storage: storage });
 
-router.get('/', auth, async (req, res) => {
-  try {
-    const books = await Book.find().sort({ uploadedAt: -1 });
-    res.json(books);
-  } catch (err) { res.status(500).json({ message: err.message }); }
-});
-
-// Upload Route
+// 2. Upload Route
 router.post('/', auth, requireRole('admin'), upload.fields([{ name: 'file', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), async (req, res) => {
   try {
     if (!req.files || !req.files['file']) {
@@ -41,18 +44,19 @@ router.post('/', auth, requireRole('admin'), upload.fields([{ name: 'file', maxC
       title: req.body.title,
       author: req.body.author,
       category: req.body.category,
-      filePath: pdfFile.filename, 
+      filePath: pdfFile.path, // <--- MUST BE .path (Cloudinary URL)
       fileSize: pdfFile.size,
-      coverImage: coverFile ? coverFile.filename : null, 
+      coverImage: coverFile ? coverFile.path : null, // <--- MUST BE .path (Cloudinary URL)
       uploadedBy: req.user.id
     });
     res.json(book);
   } catch (err) {
-    console.error(err);
+    console.error("UPLOAD ERROR:", err);
     res.status(500).json({ message: err.message });
   }
 });
 
+// ... (Keep the rest of the routes exactly as they are: GET, download, cover, delete)
 // Download Route
 router.get('/:id/download', auth, async (req, res) => {
   try {
