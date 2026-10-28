@@ -14,12 +14,25 @@ export default function Dashboard() {
   const [complaintForm, setComplaintForm] = useState({ title: '', message: '' });
   const [submitMsg, setSubmitMsg] = useState('');
 
-  const loadData = () => {
+   const loadData = () => {
     if (user?.role === 'student') {
-      api.get('/students/dashboard').then(res => {
-        setStudentData(res.data);
-        setLoading(false);
-      }).catch(() => setLoading(false));
+      api.get('/students/dashboard')
+        .then(res => {
+          // FORCE everything to be an array so React doesn't crash
+          setStudentData({
+            ustazInfo: res.data?.ustazInfo || null,
+            schedules: Array.isArray(res.data?.schedules) ? res.data.schedules : [],
+            complaints: Array.isArray(res.data?.complaints) ? res.data.complaints : [],
+            classmates: Array.isArray(res.data?.classmates) ? res.data.classmates : [],
+            semesters: Array.isArray(res.data?.semesters) ? res.data.semesters : [],
+            kitabName: res.data?.kitabName || ''
+          });
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error("Dashboard load error:", err);
+          setLoading(false);
+        });
     } else {
       setLoading(false);
     }
