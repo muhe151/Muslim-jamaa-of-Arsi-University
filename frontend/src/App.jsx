@@ -1,3 +1,4 @@
+import ErrorBoundary from './components/ErrorBoundary';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
@@ -16,6 +17,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+       <ErrorBoundary></ErrorBoundary>
         <div className="d-flex flex-column min-vh-100 bg-light">
           <Navbar />
           <main className="flex-grow-1">
@@ -33,6 +35,7 @@ export default function App() {
           </main>
           <Footer />
         </div>
+        <ErrorBoundary />
       </BrowserRouter>
     </AuthProvider>
   );
