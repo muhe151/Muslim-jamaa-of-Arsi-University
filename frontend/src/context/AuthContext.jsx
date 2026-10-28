@@ -7,14 +7,21 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+    useEffect(() => {
     const token = localStorage.getItem('token');
     const stored = localStorage.getItem('user');
-    if (token && stored) setUser(JSON.parse(stored));
+    
+    if (token && stored && stored !== "undefined") {
+      try {
+        setUser(JSON.parse(stored));
+      } catch (e) {
+        console.error("Failed to parse user", e);
+        localStorage.clear(); // Clear corrupt data
+      }
+    }
     setLoading(false);
   }, []);
-
-  const login = async (email, password) => {
+    const login = async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
