@@ -1,6 +1,9 @@
+import axios from 'axios';
 
- import axios from 'axios';
-const api = axios.create({ baseURL: '/api' });
+const api = axios.create({ 
+  // FORCE the live backend URL directly
+  baseURL: 'https://muslim-jamaa-api.onrender.com/api' 
+});
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
