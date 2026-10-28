@@ -39,17 +39,21 @@ export default function Books() {
               
               {/* Smaller Image Height (180px instead of 250px) */}
               {b.coverImage ? (
-                <img 
-  src={`https://muslim-jamaa-api.onrender.com/api/books/${b._id}/cover`} 
-  className="card-img-top rounded-top-4 object-fit-cover" 
-  style={{ height: '180px' }} 
-  alt={b.title} 
-/>
-              ) : (
-                <div className="card-img-top rounded-top-3 bg-secondary d-flex align-items-center justify-content-center" style={{ height: '180px' }}>
-                  <span className="text-white fs-3">📖</span>
-                </div>
-              )}
+  <img 
+    src={b.coverImage.startsWith('http') ? b.coverImage : `https://muslim-jamaa-api.onrender.com/uploads/books/${b.coverImage}`} 
+    className="card-img-top rounded-top-4 object-fit-cover" 
+    style={{ height: '220px' }} 
+    alt={b.title} 
+    onError={(e) => {
+      e.target.onerror = null; 
+      e.target.src = 'https://via.placeholder.com/220?text=No+Cover'; 
+    }}
+  />
+) : (
+  <div className="card-img-top rounded-top-4 bg-secondary d-flex align-items-center justify-content-center" style={{ height: '220px' }}>
+    <span className="text-white fs-1">📖</span>
+  </div>
+)}
               
               <div className="card-body d-flex flex-column p-2">
                 <h6 className="card-title fw-bold text-dark mb-1 text-truncate" style={{ fontSize: '0.9rem' }}>

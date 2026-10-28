@@ -19,7 +19,9 @@ app.use('/api/semesters', require('./routes/semesters'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/news', require('./routes/news'));
 
+
 app.get('/', (req, res) => res.json({ message: 'Muslim Jama\'aa API running' }));
 
 const PORT = process.env.PORT || 5000;
+app.use('/uploads', express.static('uploads'));
 app.listen(PORT, () => console.log(`🚀 Server on http://localhost:${PORT}`));
