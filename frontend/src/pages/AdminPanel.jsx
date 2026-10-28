@@ -166,7 +166,7 @@ function AdminBooks() {
           {books?.map(b => (
             <li key={b._id} className="list-group-item d-flex justify-content-between align-items-center py-3">
               <div className="d-flex align-items-center gap-3">
-                {b.coverImage ? <img src={`http://localhost:5000/api/books/${b._id}/cover`} alt="cover" style={{ width: '40px', height: '60px', objectFit: 'cover' }} /> : <div className="bg-secondary text-white p-3">📖</div>}
+                {b.coverImage ? <img src={b.coverImage} alt="cover" style={{ width: '40px', height: '60px', objectFit: 'cover' }} /> : <div className="bg-secondary text-white p-3">📖</div>}
                 <div><h6 className="mb-0 fw-bold">{b.title}</h6><small className="text-muted">{b.author}</small></div>
               </div>
               <button onClick={() => del(b._id)} className="btn btn-sm btn-outline-danger">Delete</button>

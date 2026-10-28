@@ -38,15 +38,15 @@ export default function Books() {
             <div className="card h-100 shadow-sm border-0 rounded-3 hover-shadow transition-all">
               
               {/* Smaller Image Height (180px instead of 250px) */}
-              {b.coverImage ? (
+        {b.coverImage ? (
   <img 
-    src={b.coverImage.startsWith('http') ? b.coverImage : `https://muslim-jamaa-api.onrender.com/uploads/books/${b.coverImage}`} 
+    src={b.coverImage.startsWith('http') ? b.coverImage : `https://muslim-jamaa-api.onrender.com/api/books/${b._id}/cover`} 
     className="card-img-top rounded-top-4 object-fit-cover" 
     style={{ height: '220px' }} 
     alt={b.title} 
     onError={(e) => {
       e.target.onerror = null; 
-      e.target.src = 'https://via.placeholder.com/220?text=No+Cover'; 
+      e.target.src = 'https://via.placeholder.com/220x300?text=No+Cover'; 
     }}
   />
 ) : (
