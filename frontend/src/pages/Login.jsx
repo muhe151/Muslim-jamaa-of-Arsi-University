@@ -23,7 +23,7 @@ export default function Login() {
       .catch(() => setNews([]));
   }, []);
 
-  const submit = async (e) => {
+    const submit = async (e) => {
     e.preventDefault();
     setErr('');
     setIsLoading(true);
@@ -32,11 +32,16 @@ export default function Login() {
       nav('/dashboard'); 
     }
     catch (e) { 
-      setErr(e.response?.data?.message || 'Invalid credentials'); 
+      console.error(e); // Show in console
+      
+      // FORCE AN ALERT TO SEE THE EXACT ERROR
+      const errorMessage = e.response?.data?.message || e.message || 'Login failed';
+      alert("LOGIN ERROR: " + errorMessage); 
+      
+      setErr(errorMessage); 
       setIsLoading(false);
     }
   };
-
   return (
     <div className="container mt-4 mb-5">
       
