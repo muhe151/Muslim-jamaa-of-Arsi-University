@@ -40,11 +40,11 @@ export default function Books() {
               {/* Smaller Image Height (180px instead of 250px) */}
               {b.coverImage ? (
                 <img 
-                  src={`http://localhost:5000/api/books/${b._id}/cover`} 
-                  className="card-img-top rounded-top-3 object-fit-cover" 
-                  style={{ height: '180px' }} 
-                  alt={b.title} 
-                />
+  src={`https://muslim-jamaa-api.onrender.com/api/books/${b._id}/cover`} 
+  className="card-img-top rounded-top-4 object-fit-cover" 
+  style={{ height: '180px' }} 
+  alt={b.title} 
+/>
               ) : (
                 <div className="card-img-top rounded-top-3 bg-secondary d-flex align-items-center justify-content-center" style={{ height: '180px' }}>
                   <span className="text-white fs-3">📖</span>

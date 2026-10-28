@@ -71,14 +71,24 @@ router.get('/:id/download', auth, async (req, res) => {
 });
 
 // Cover Image Route
+// GET COVER IMAGE
 router.get('/:id/cover', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
-    if (!book || !book.coverImage) return res.status(404).send('No cover');
-    const fullPath = path.join(__dirname, '..', 'uploads', 'books', book.coverImage);
-    if (!fs.existsSync(fullPath)) return res.status(404).send('File missing');
-    res.sendFile(fullPath);
-  } catch (err) { res.status(500).send('Server error'); }
+    if (!book || !book.coverImage) {
+      return res.status(404).send('No cover');
+    }
+    
+    // Cloudinary URLs start with 'http'. Redirect to them directly.
+    if (book.coverImage.startsWith('http')) {
+      return res.redirect(book.coverImage);
+    } 
+    
+    // Fallback for old local images (just in case you have old books)
+    res.redirect(`https://muslim-jamaa-api.onrender.com/uploads/books/${book.coverImage}`);
+  } catch (err) { 
+    res.status(500).send('Server error'); 
+  }
 });
 
 // Delete Route
