@@ -11,8 +11,16 @@ export default function Login() {
   const [news, setNews] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    api.get('/news').then(res => setNews(res.data)).catch(() => {});
+    useEffect(() => {
+    api.get('/news')
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setNews(res.data);
+        } else {
+          setNews([]);
+        }
+      })
+      .catch(() => setNews([]));
   }, []);
 
   const submit = async (e) => {
