@@ -276,7 +276,7 @@ export default function Dashboard() {
                               </td>
                             </tr>
                           ) : (
-                            studentData.schedules.map((s, index) => {
+                            studentData.schedules?.map((s, index) => {
                               return (
                                 <tr key={index} className="border-bottom">
                                   <td className="align-top pt-3">
@@ -303,7 +303,7 @@ export default function Dashboard() {
                                         {studentData.classmates.length === 0 ? (
                                           <span className="text-muted small">None yet</span>
                                         ) : (
-                                          studentData.classmates.map((c, i) => (
+                                          studentData.classmates?.map((c, i) => (
                                             <span key={i} className="badge bg-white text-dark border shadow-sm px-3 py-2 rounded-pill mb-1 w-100" style={{ fontSize: '0.75rem' }}>
                                               {c.name}
                                             </span>
@@ -348,7 +348,7 @@ export default function Dashboard() {
                     <p className="text-muted small text-center my-3">No complaints submitted yet.</p>
                   ) : (
                     <div className="d-flex flex-column gap-2">
-                      {studentData.complaints.map(c => (
+                      {studentData.complaints?.map(c => (
                         <div key={c._id} className="card border-0 shadow-sm rounded-3">
                           <div className="card-body p-3">
                             <div className="d-flex justify-content-between align-items-center mb-1">

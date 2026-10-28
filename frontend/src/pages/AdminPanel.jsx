@@ -22,7 +22,7 @@ export default function AdminPanel() {
       
       {/* VISUAL GALLERY DASHBOARD */}
       <div className="row g-3 mb-5">
-        {DASHBOARD_CARDS.map(card => (
+        {DASHBOARD_CARDS?.map(card => (
           <div className="col-6 col-md-4 col-lg-3 col-xl-2" key={card.id}>
             <div 
               onClick={() => setTab(card.id)}
@@ -86,7 +86,7 @@ function AdminStudents() {
         <table className="table table-hover align-middle">
           <thead className="table-light"><tr><th>Name</th><th>Email</th><th>Location</th><th>Quran</th><th>Islamic Ed.</th><th>Kitabs</th></tr></thead>
           <tbody>
-            {students.map(s => (
+            {students?.map(s => (
               <tr key={s.id}>
                 <td className="fw-bold">{s.fullName}</td><td>{s.email}</td><td>{s.city}, {s.zone}</td>
                 <td><span className="badge bg-info text-dark">{s.quranLevel}</span></td><td>{s.islamicEducationStatus}</td><td className="text-muted small">{s.kitabPreferences}</td>
@@ -163,7 +163,7 @@ function AdminBooks() {
       <div className="col-md-8">
         <h5 className="fw-bold mb-3">Library ({books.length})</h5>
         <ul className="list-group shadow-sm">
-          {books.map(b => (
+          {books?.map(b => (
             <li key={b._id} className="list-group-item d-flex justify-content-between align-items-center py-3">
               <div className="d-flex align-items-center gap-3">
                 {b.coverImage ? <img src={`http://localhost:5000/api/books/${b._id}/cover`} alt="cover" style={{ width: '40px', height: '60px', objectFit: 'cover' }} /> : <div className="bg-secondary text-white p-3">📖</div>}
@@ -238,7 +238,7 @@ function AdminReports() {
                 <table className="table table-bordered table-striped align-middle mb-0">
                   <thead className="table-light"><tr><th>Kitab Name</th><th className="text-end">Total Students</th></tr></thead>
                   <tbody>
-                    {Object.entries(stats.kitabStats).map(([kitab, count]) => (
+                    {Object.entries(stats.kitabStats)?.map(([kitab, count]) => (
                       <tr key={kitab}><td className="fw-bold">{kitab}</td><td className="text-end"><span className="badge bg-primary fs-6">{count}</span></td></tr>
                     ))}
                   </tbody>
@@ -257,7 +257,7 @@ function AdminReports() {
                 <table className="table table-bordered table-striped align-middle mb-0">
                   <thead className="table-light"><tr><th>Campus Name</th><th className="text-end">Total Students</th></tr></thead>
                   <tbody>
-                    {CAMPUSES.map(campus => (
+                    {CAMPUSES?.map(campus => (
                       <tr key={campus}><td className="fw-bold">{campus}</td><td className="text-end"><span className="badge bg-info text-dark fs-6">{stats.campusStats[campus] || 0}</span></td></tr>
                     ))}
                   </tbody>
@@ -276,7 +276,7 @@ function AdminReports() {
                 <table className="table table-bordered table-striped align-middle mb-0">
                   <thead className="table-light"><tr><th>Department</th><th className="text-end">Total Students</th></tr></thead>
                   <tbody>
-                    {Object.entries(stats.departmentStats).map(([dept, count]) => (
+                    {Object.entries(stats.departmentStats)?.map(([dept, count]) => (
                       <tr key={dept}><td className="fw-bold">{dept}</td><td className="text-end"><span className="badge bg-warning text-dark fs-6">{count}</span></td></tr>
                     ))}
                   </tbody>
@@ -295,7 +295,7 @@ function AdminReports() {
                 <table className="table table-bordered table-striped align-middle mb-0">
                   <thead className="table-light"><tr><th>Year</th><th className="text-end">Total Students</th></tr></thead>
                   <tbody>
-                    {Object.entries(stats.yearStats).map(([year, count]) => (
+                    {Object.entries(stats.yearStats)?.map(([year, count]) => (
                       <tr key={year}><td className="fw-bold">{year}</td><td className="text-end"><span className="badge bg-secondary fs-6">{count}</span></td></tr>
                     ))}
                   </tbody>
@@ -408,7 +408,7 @@ function AdminSchedule() {
                 <div className="mb-2">
                   <label className="small fw-bold">Target Kitab</label>
                   <select className="form-select" value={form.targetKitab} onChange={e => setForm({ ...form, targetKitab: e.target.value })}>
-                    {KITABS.map(k => <option key={k} value={k}>{k}</option>)}
+                    {KITABS?.map(k => <option key={k} value={k}>{k}</option>)}
                   </select>
                 </div>
 
@@ -416,7 +416,7 @@ function AdminSchedule() {
                   <div className="col-6">
                     <label className="small fw-bold">Campus</label>
                     <select className="form-select" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })}>
-                      {CAMPUSES.map(c => <option key={c} value={c}>{c}</option>)}
+                      {CAMPUSES?.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div className="col-6">
@@ -434,7 +434,7 @@ function AdminSchedule() {
                   <label className="small fw-bold">Assign Ustaz</label>
                   <select className="form-select" value={form.ustaz} onChange={e => setForm({ ...form, ustaz: e.target.value })}>
                     <option value="">Ustaz (Optional)</option>
-                    {ustazList.map(u => <option key={u._id} value={u._id}>{u.fullName}</option>)}
+                    {ustazList?.map(u => <option key={u._id} value={u._id}>{u.fullName}</option>)}
                   </select>
                 </div>
 
@@ -450,7 +450,7 @@ function AdminSchedule() {
         <div className="col-md-7">
           <h5 className="fw-bold mb-3 text-success border-bottom pb-2">Semester 1 Classes</h5>
           <div className="row g-3 mb-4">
-            {schedules.filter(s => s.semester === 'Semester 1').map(s => {
+            {schedules.filter(s => s.semester === 'Semester 1')?.map(s => {
               const kitabStudents = students.filter(st => st.kitabPreferences?.toLowerCase() === s.targetKitab?.toLowerCase());
               return (
                 <div className="col-md-6" key={s._id}>
@@ -483,7 +483,7 @@ function AdminSchedule() {
 
           <h5 className="fw-bold mb-3 text-dark border-bottom pb-2">Semester 2 Classes</h5>
           <div className="row g-3">
-            {schedules.filter(s => s.semester === 'Semester 2').map(s => {
+            {schedules.filter(s => s.semester === 'Semester 2')?.map(s => {
               const kitabStudents = students.filter(st => st.kitabPreferences?.toLowerCase() === s.targetKitab?.toLowerCase());
               return (
                 <div className="col-md-6" key={s._id}>
@@ -598,7 +598,7 @@ function AdminFinance() {
         
                 <h5 className="fw-bold mb-3">All Accounts</h5>
         <div className="row">
-          {accounts.map(a => (
+          {accounts?.map(a => (
             <div className="col-sm-6 mb-3" key={a._id}>
               <div className={`card border-0 shadow-sm rounded-4 ${a.isDonation ? 'bg-success text-white' : 'bg-dark text-white'}`}>
                 <div className="card-body position-relative">
@@ -642,7 +642,7 @@ function AdminFinance() {
         
         <h5 className="fw-bold mb-3">Recent Transactions</h5>
         <ul className="list-group shadow-sm">
-          {transactions.slice(0, 5).map(t => (
+          {transactions?.slice(0, 5)?.map(t => (
             <li key={t._id} className="list-group-item d-flex justify-content-between">
               <div><strong className={t.type === 'income' ? 'text-success' : 'text-danger'}>{t.type === 'income' ? '+' : '-'} {t.amount}</strong><small className="d-block text-muted">{t.account?.name} - {t.category}</small></div>
               <small className="text-muted">{new Date(t.transactionDate).toLocaleDateString()}</small>
@@ -673,7 +673,7 @@ function AdminComplaints() {
     <div>
       <h5 className="fw-bold mb-4">Student Complaints</h5>
       <div className="row">
-        {complaints.map(c => (
+        {complaints?.map(c => (
           <div className="col-md-6 mb-3" key={c._id}>
             <div className="card shadow-sm border-0 h-100">
               <div className="card-body">
@@ -730,7 +730,7 @@ function AdminNews() {
       <div className="col-md-7">
         <h5 className="fw-bold mb-3">Published News</h5>
         <ul className="list-group shadow-sm">
-          {news.map(n => (
+          {news?.map(n => (
             <li key={n._id} className="list-group-item d-flex justify-content-between align-items-center py-3">
               <div><h6 className="fw-bold mb-1">{n.title}</h6><p className="text-muted small mb-0">{n.content}</p></div>
               <button onClick={() => del(n._id)} className="btn btn-sm btn-outline-danger">Delete</button>
